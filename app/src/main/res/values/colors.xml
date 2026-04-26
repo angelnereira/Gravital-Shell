@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="background">#FF0F0F0F</color>
     <color name="terminal_background">#FF1A1A1A</color>
     <color name="terminal_foreground">#FFD4D4D4</color>
     <color name="terminal_accent">#FF39FF14</color>

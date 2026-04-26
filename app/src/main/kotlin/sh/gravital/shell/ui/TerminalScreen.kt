@@ -65,7 +65,7 @@ fun TerminalScreen(
 
             override fun onTerminalCursorStateChange(state: Boolean) {}
 
-            override fun setTerminalShellPid(session: TerminalSession, pid: Int) {}
+            override fun getTerminalCursorStyle(): Int = 0
 
             override fun logError(tag: String?, message: String?) {}
 
