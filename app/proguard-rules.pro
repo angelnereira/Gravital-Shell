@@ -1,0 +1,3 @@
+-keep class sh.gravital.shell.bridge.** { *; }
+-keep class com.termux.** { *; }
+-dontwarn com.termux.**

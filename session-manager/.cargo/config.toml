@@ -1,0 +1,7 @@
+[target.aarch64-linux-android]
+ar = "aarch64-linux-android-ar"
+linker = "aarch64-linux-android29-clang"
+
+[target.x86_64-linux-android]
+ar = "x86_64-linux-android-ar"
+linker = "x86_64-linux-android29-clang"

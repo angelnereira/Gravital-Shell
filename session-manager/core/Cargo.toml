@@ -1,0 +1,21 @@
+[package]
+name = "gravitalshell-core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "gravitalshell_core"
+crate-type = ["rlib"]
+
+[dependencies]
+uuid       = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+tokio      = { workspace = true }
+anyhow     = { workspace = true }
+thiserror  = { workspace = true }
+log        = { workspace = true }
+zstd       = { workspace = true }
+tar        = { workspace = true }
+nix        = { workspace = true }
+once_cell  = { workspace = true }
