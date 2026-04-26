@@ -100,42 +100,36 @@ download_libtalloc() {
     fi
 }
 
-download_alpine() {
-    local tarball="$ASSETS_DIR/alpine-minirootfs.tar.gz"
-    local extract_dir="$ASSETS_DIR/alpine-minirootfs"
-    local app_tarball="$APP_ASSETS_DIR/alpine-minirootfs.tar.gz"
+download_ubuntu() {
+    local tarball="$ASSETS_DIR/ubuntu-base.tar.gz"
+    local app_tarball="$APP_ASSETS_DIR/ubuntu-base.tar.gz"
 
     if [ -f "$app_tarball" ]; then
-        log "Alpine minirootfs tarball already present, skipping."
+        log "Ubuntu base tarball already present, skipping."
         return 0
     fi
     if [ -f "$tarball" ]; then
-        log "Alpine tarball already in assets/, copying to app assets..."
+        log "Ubuntu tarball already in assets/, copying to app assets..."
         cp "$tarball" "$app_tarball"
         return 0
     fi
 
-    log "Downloading Alpine Linux 3.19.1 ARM64 minirootfs..."
-    local url="https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/aarch64/alpine-minirootfs-3.19.1-aarch64.tar.gz"
-    if ! wget -q --timeout=60 --show-progress -O "$tarball" "$url"; then
-        fail "Failed to download Alpine minirootfs from $url"
+    log "Downloading Ubuntu 22.04 LTS ARM64 base rootfs..."
+    local url="https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz"
+    if ! wget -q --timeout=120 --show-progress -O "$tarball" "$url"; then
+        fail "Failed to download Ubuntu base from $url"
     fi
 
-    log "Alpine minirootfs downloaded ($(du -sh "$tarball" | cut -f1))"
-
-    mkdir -p "$extract_dir"
-    tar -xzf "$tarball" -C "$extract_dir"
-    log "Alpine minirootfs extracted to $extract_dir"
-
+    log "Ubuntu base downloaded ($(du -sh "$tarball" | cut -f1))"
     cp "$tarball" "$app_tarball"
-    log "Alpine tarball copied to app assets"
+    log "Ubuntu tarball copied to app assets"
 }
 
 main() {
     log "Downloading required assets..."
     download_proot
     download_libtalloc
-    download_alpine
+    download_ubuntu
     log "Assets ready."
 }
 

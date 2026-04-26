@@ -6,7 +6,7 @@ enum class SessionPolicy { Ephemeral, Persistent, Snapshot }
 
 enum class SessionState { Stopped, Running, Suspended }
 
-enum class Distro { Alpine, Debian }
+enum class Distro { Ubuntu, Debian }
 
 data class SessionModel(
     @SerializedName("id") val id: String,

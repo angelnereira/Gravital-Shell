@@ -21,12 +21,13 @@ pub fn build_proot_argv(
         CString::new("--change-id=0:0").unwrap(),
         CString::new("--kill-on-exit").unwrap(),
         CString::new("--pwd=/root").unwrap(),
-        CString::new("/bin/sh").unwrap(),
+        CString::new("/bin/bash").unwrap(),
         CString::new("-c").unwrap(),
         CString::new(
-            "export TERM=xterm-256color && source /etc/profile 2>/dev/null; \
-             [ -f /root/.init.sh ] && sh /root/.init.sh && rm -f /root/.init.sh; \
-             exec /bin/ash",
+            "export TERM=xterm-256color HOME=/root USER=root DEBIAN_FRONTEND=noninteractive && \
+             source /etc/profile 2>/dev/null || true; \
+             [ -f /root/.init.sh ] && bash /root/.init.sh && rm -f /root/.init.sh; \
+             exec /bin/bash",
         )
         .unwrap(),
     ]
