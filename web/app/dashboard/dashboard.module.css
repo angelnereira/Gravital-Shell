@@ -1,0 +1,196 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--accent);
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sideNav {
+  flex: 1;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navItem {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: background 0.1s;
+}
+
+.navItem:hover { background: var(--bg); color: var(--text); }
+.active { color: var(--accent) !important; background: rgba(57, 255, 20, 0.08); }
+
+.userRow {
+  padding: 16px 16px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.userName { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.signOutBtn {
+  background: none;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 40px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.createForm {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.input {
+  flex: 1;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+.input:focus { border-color: var(--accent); }
+
+.select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+.empty {
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.sessionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.sessionCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sessionMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sessionName {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.badge_running { composes: badge; background: rgba(57,255,20,0.15); color: var(--accent); }
+.badge_stopped { composes: badge; }
+.badge_suspended { composes: badge; background: rgba(255,200,0,0.15); color: #ffd700; }
+
+.sessionInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sessionActions {
+  display: flex;
+  gap: 8px;
+}
+
+.openBtn {
+  flex: 1;
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+  transition: opacity 0.15s;
+}
+
+.openBtn:hover { opacity: 0.85; color: #000; }

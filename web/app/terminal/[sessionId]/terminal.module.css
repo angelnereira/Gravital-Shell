@@ -1,0 +1,39 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0f0f0f;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 20px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+
+.backLink {
+  font-size: 13px;
+  color: #888;
+}
+
+.backLink:hover { color: #d4d4d4; }
+
+.sessionName {
+  font-size: 13px;
+  color: #d4d4d4;
+  font-weight: 600;
+}
+
+.terminal {
+  flex: 1;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.terminal :global(.xterm) {
+  height: 100%;
+}

@@ -1,0 +1,127 @@
+.main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.ctaNav {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  gap: 24px;
+}
+
+.headline {
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -2px;
+  color: var(--text);
+}
+
+.sub {
+  max-width: 520px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.ctaGroup {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.ctaBtn {
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 28px;
+  border-radius: 8px;
+  transition: opacity 0.15s;
+}
+
+.ctaBtn:hover { opacity: 0.85; color: #000; }
+
+.secondaryBtn {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 28px;
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.secondaryBtn:hover { border-color: var(--accent); color: var(--text); }
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.featureCard {
+  padding: 36px 32px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.featureCard h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.featureCard p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.footer {
+  padding: 24px 48px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+}
