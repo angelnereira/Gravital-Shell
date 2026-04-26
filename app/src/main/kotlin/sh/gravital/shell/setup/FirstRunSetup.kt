@@ -11,7 +11,7 @@ import java.io.FileOutputStream
 
 private const val TAG = "FirstRunSetup"
 private const val MARKER = ".setup_complete"
-private const val ALPINE_ASSET = "alpine-minirootfs.tar.gz"
+private const val UBUNTU_ASSET = "ubuntu-base.tar.gz"
 
 object FirstRunSetup {
 
@@ -27,7 +27,7 @@ object FirstRunSetup {
             onProgress("Preparing terminal environment...")
 
             extractProot(context, filesDir, onProgress)
-            extractAlpine(context, filesDir, onProgress)
+            extractUbuntu(context, filesDir, onProgress)
             writeResolvConf(filesDir)
 
             GravitalShellBridge.initialize(filesDir.absolutePath)
@@ -55,15 +55,15 @@ object FirstRunSetup {
         Log.i(TAG, "proot ($assetName) extracted to ${dest.absolutePath}")
     }
 
-    private fun extractAlpine(context: Context, filesDir: File, onProgress: (String) -> Unit) {
-        val templateDir = File(filesDir, "alpine-template")
+    private fun extractUbuntu(context: Context, filesDir: File, onProgress: (String) -> Unit) {
+        val templateDir = File(filesDir, "ubuntu-template")
         if (templateDir.exists() && templateDir.list()?.isNotEmpty() == true) return
 
-        onProgress("Extracting Alpine Linux rootfs...")
+        onProgress("Extracting Ubuntu rootfs (this may take a minute)...")
         templateDir.mkdirs()
 
-        val tarball = File(filesDir, ALPINE_ASSET)
-        context.assets.open(ALPINE_ASSET).use { src ->
+        val tarball = File(filesDir, UBUNTU_ASSET)
+        context.assets.open(UBUNTU_ASSET).use { src ->
             FileOutputStream(tarball).use { out -> src.copyTo(out) }
         }
 
@@ -74,9 +74,9 @@ object FirstRunSetup {
         tarball.delete()
 
         if (result != 0) {
-            throw RuntimeException("tar exited $result while extracting Alpine rootfs")
+            throw RuntimeException("tar exited $result while extracting Ubuntu rootfs")
         }
-        Log.i(TAG, "Alpine rootfs extracted to ${templateDir.absolutePath}")
+        Log.i(TAG, "Ubuntu rootfs extracted to ${templateDir.absolutePath}")
     }
 
     private fun writeResolvConf(filesDir: File) {

@@ -18,7 +18,7 @@ pub enum SessionState {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Distro {
-    Alpine,
+    Ubuntu,
     Debian,
 }
 

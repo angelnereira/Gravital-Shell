@@ -64,7 +64,7 @@ pub extern "C" fn Java_sh_gravital_shell_bridge_GravitalShellBridge_createSessio
     };
 
     let mut mgr = get_manager().lock().unwrap();
-    match mgr.create(name, policy, Distro::Alpine) {
+    match mgr.create(name, policy, Distro::Ubuntu) {
         Ok(session) => {
             let id = session.id.to_string();
             env.new_string(id).unwrap().into_raw()
@@ -92,7 +92,7 @@ pub extern "C" fn Java_sh_gravital_shell_bridge_GravitalShellBridge_startSession
     };
 
     let dir = files_dir().to_string();
-    let template = PathBuf::from(&dir).join("alpine-template");
+    let template = PathBuf::from(&dir).join("ubuntu-template");
 
     let mgr = get_manager().lock().unwrap();
 
