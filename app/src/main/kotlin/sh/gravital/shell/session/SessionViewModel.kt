@@ -66,18 +66,25 @@ class SessionViewModel : ViewModel() {
         }
     }
 
-    fun buildTerminalSession(
-        sessionId: String,
-        client: TerminalSessionClient,
-    ): TerminalSession? {
-        _activeSessions[sessionId]?.let { return it }
-
+    // Step 1 — run on Dispatchers.IO: heavy work (rootfs copy, proot args via JNI)
+    fun prepareSession(sessionId: String): List<String> {
         val argsJson = GravitalShellBridge.startSession(sessionId)
         val args: List<String> = gson.fromJson(argsJson, object : TypeToken<List<String>>() {}.type)
         if (args.isEmpty()) {
             android.util.Log.e("SessionViewModel", "startSession returned empty args for $sessionId")
-            return null
+            throw RuntimeException("Failed to build proot args for session $sessionId")
         }
+        android.util.Log.i("SessionViewModel", "proot args ready for $sessionId: ${args[0]}")
+        return args
+    }
+
+    // Step 2 — MUST run on Main thread: TerminalSession creates an Android Handler internally
+    fun createTerminalSession(
+        sessionId: String,
+        args: List<String>,
+        client: TerminalSessionClient,
+    ): TerminalSession {
+        _activeSessions[sessionId]?.let { return it }
 
         val shellPath = args[0]
         val shellArgs = args.drop(1).toTypedArray()
@@ -91,7 +98,6 @@ class SessionViewModel : ViewModel() {
             "LD_LIBRARY_PATH=$ldPath",
         )
 
-        android.util.Log.i("SessionViewModel", "Starting session $sessionId: $shellPath")
         val session = TerminalSession(shellPath, "/", shellArgs, env, 2000, client)
         _activeSessions[sessionId] = session
         return session
