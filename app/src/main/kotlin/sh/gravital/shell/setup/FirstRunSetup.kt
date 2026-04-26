@@ -99,8 +99,13 @@ object FirstRunSetup {
 
         tarball.delete()
 
-        if (result != 0) {
+        // exit 1 = non-fatal warnings (hard link creation denied on Android /data is expected)
+        // exit 2 = fatal error, tar aborted
+        if (result > 1) {
             throw RuntimeException("tar failed (exit $result): $err")
+        }
+        if (result == 1) {
+            Log.w(TAG, "tar completed with warnings (hard links may have been skipped): $err")
         }
         Log.i(TAG, "Ubuntu rootfs extracted to ${templateDir.absolutePath}")
     }
