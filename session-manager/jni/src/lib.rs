@@ -225,6 +225,85 @@ pub extern "C" fn Java_sh_gravital_shell_bridge_GravitalShellBridge_importSessio
     }
 }
 
+#[no_mangle]
+pub extern "C" fn Java_sh_gravital_shell_bridge_GravitalShellBridge_importFileToSession(
+    mut env: JNIEnv,
+    _class: JClass,
+    session_id: JString,
+    src_path: JString,
+    dest_rel: JString,
+) -> jint {
+    let id_str: String = env.get_string(&session_id).unwrap().into();
+    let src: String = env.get_string(&src_path).unwrap().into();
+    let rel: String = env.get_string(&dest_rel).unwrap().into();
+
+    if let Ok(id) = Uuid::parse_str(&id_str) {
+        let mgr = get_manager().lock().unwrap();
+        match mgr.import_file(&id, std::path::Path::new(&src), &rel) {
+            Ok(_) => 0,
+            Err(e) => {
+                log::error!("importFileToSession failed: {}", e);
+                -1
+            }
+        }
+    } else {
+        -1
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn Java_sh_gravital_shell_bridge_GravitalShellBridge_exportFileFromSession(
+    mut env: JNIEnv,
+    _class: JClass,
+    session_id: JString,
+    src_rel: JString,
+    dest_path: JString,
+) -> jint {
+    let id_str: String = env.get_string(&session_id).unwrap().into();
+    let rel: String = env.get_string(&src_rel).unwrap().into();
+    let dest: String = env.get_string(&dest_path).unwrap().into();
+
+    if let Ok(id) = Uuid::parse_str(&id_str) {
+        let mgr = get_manager().lock().unwrap();
+        match mgr.export_file(&id, &rel, std::path::Path::new(&dest)) {
+            Ok(_) => 0,
+            Err(e) => {
+                log::error!("exportFileFromSession failed: {}", e);
+                -1
+            }
+        }
+    } else {
+        -1
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn Java_sh_gravital_shell_bridge_GravitalShellBridge_listSessionFiles(
+    mut env: JNIEnv,
+    _class: JClass,
+    session_id: JString,
+    rel_path: JString,
+) -> jstring {
+    let id_str: String = env.get_string(&session_id).unwrap().into();
+    let rel: String = env.get_string(&rel_path).unwrap().into();
+
+    if let Ok(id) = Uuid::parse_str(&id_str) {
+        let mgr = get_manager().lock().unwrap();
+        match mgr.list_session_files(&id, &rel) {
+            Ok(entries) => {
+                let json = serde_json::to_string(&entries).unwrap_or_else(|_| "[]".into());
+                env.new_string(json).unwrap().into_raw()
+            }
+            Err(e) => {
+                log::error!("listSessionFiles failed: {}", e);
+                env.new_string("[]").unwrap().into_raw()
+            }
+        }
+    } else {
+        env.new_string("[]").unwrap().into_raw()
+    }
+}
+
 mod libc {
     pub use std::os::raw::c_int;
     pub const SIGTERM: c_int = 15;

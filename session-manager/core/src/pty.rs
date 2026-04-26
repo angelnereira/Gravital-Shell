@@ -24,7 +24,9 @@ pub fn build_proot_argv(
         CString::new("/bin/sh").unwrap(),
         CString::new("-c").unwrap(),
         CString::new(
-            "export TERM=xterm-256color && source /etc/profile 2>/dev/null; exec /bin/ash",
+            "export TERM=xterm-256color && source /etc/profile 2>/dev/null; \
+             [ -f /root/.init.sh ] && sh /root/.init.sh && rm -f /root/.init.sh; \
+             exec /bin/ash",
         )
         .unwrap(),
     ]

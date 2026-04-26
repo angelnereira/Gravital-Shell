@@ -159,6 +159,45 @@ impl SessionManager {
         Ok(())
     }
 
+    pub fn import_file(&self, id: &Uuid, src_path: &Path, dest_rel: &str) -> Result<()> {
+        let session = self.sessions.get(id).context("session not found")?;
+        let dest = session.rootfs_path().join(dest_rel.trim_start_matches('/'));
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::copy(src_path, &dest)
+            .with_context(|| format!("copy {:?} -> {:?}", src_path, dest))?;
+        Ok(())
+    }
+
+    pub fn export_file(&self, id: &Uuid, src_rel: &str, dest_path: &Path) -> Result<()> {
+        let session = self.sessions.get(id).context("session not found")?;
+        let src = session.rootfs_path().join(src_rel.trim_start_matches('/'));
+        if let Some(parent) = dest_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::copy(&src, dest_path)
+            .with_context(|| format!("copy {:?} -> {:?}", src, dest_path))?;
+        Ok(())
+    }
+
+    pub fn list_session_files(&self, id: &Uuid, rel_path: &str) -> Result<Vec<String>> {
+        let session = self.sessions.get(id).context("session not found")?;
+        let dir = session.rootfs_path().join(rel_path.trim_start_matches('/'));
+        let mut entries = Vec::new();
+        if dir.is_dir() {
+            for e in std::fs::read_dir(&dir)? {
+                if let Ok(e) = e {
+                    let name = e.file_name().to_string_lossy().into_owned();
+                    let suffix = if e.path().is_dir() { "/" } else { "" };
+                    entries.push(format!("{}{}", name, suffix));
+                }
+            }
+        }
+        entries.sort();
+        Ok(entries)
+    }
+
     fn persist_session(&self, session: &Session) -> Result<()> {
         let json = serde_json::to_string_pretty(session)?;
         std::fs::write(session.meta_path(), json)?;

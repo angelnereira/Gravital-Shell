@@ -23,4 +23,10 @@ object GravitalShellBridge {
     external fun exportSession(sessionId: String, destPath: String)
 
     external fun importSession(srcPath: String): String
+
+    external fun importFileToSession(sessionId: String, srcPath: String, destRel: String): Int
+
+    external fun exportFileFromSession(sessionId: String, srcRel: String, destPath: String): Int
+
+    external fun listSessionFiles(sessionId: String, relPath: String): String
 }
