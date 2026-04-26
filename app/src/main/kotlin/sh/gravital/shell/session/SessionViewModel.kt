@@ -37,11 +37,31 @@ class SessionViewModel : ViewModel() {
         }
     }
 
-    fun createSession(name: String, policy: SessionPolicy, onComplete: (String) -> Unit) {
+    fun createSession(
+        name: String,
+        policy: SessionPolicy,
+        template: SessionTemplate = SessionTemplate.Base,
+        onComplete: (String) -> Unit,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val id = GravitalShellBridge.createSession(name, policy.name)
-            loadSessions()
-            if (id.isNotEmpty()) onComplete(id)
+            if (id.isNotEmpty()) {
+                if (template != SessionTemplate.Base) {
+                    writeBootstrapScript(id, template)
+                }
+                loadSessions()
+                onComplete(id)
+            }
+        }
+    }
+
+    private fun writeBootstrapScript(sessionId: String, template: SessionTemplate) {
+        val script = template.bootstrapScript ?: return
+        runCatching {
+            val tmp = java.io.File.createTempFile("init", ".sh")
+            tmp.writeText(script)
+            GravitalShellBridge.importFileToSession(sessionId, tmp.absolutePath, "/root/.init.sh")
+            tmp.delete()
         }
     }
 
@@ -73,7 +93,7 @@ class SessionViewModel : ViewModel() {
                 "/",
                 shellArgs,
                 env,
-                TerminalSession.TERMINAL_ROWS,
+                2000,
                 client,
             )
             _activeSessions[sessionId] = session
@@ -85,7 +105,7 @@ class SessionViewModel : ViewModel() {
 
     fun stopSession(sessionId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _activeSessions.remove(sessionId)?.finishIfRunning()
+            _activeSessions.remove(sessionId)?.let { it.finishIfRunning() }
             GravitalShellBridge.stopSession(sessionId)
             loadSessions()
         }
@@ -93,7 +113,7 @@ class SessionViewModel : ViewModel() {
 
     fun destroySession(sessionId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _activeSessions.remove(sessionId)?.finishIfRunning()
+            _activeSessions.remove(sessionId)?.let { it.finishIfRunning() }
             GravitalShellBridge.destroySession(sessionId)
             loadSessions()
         }

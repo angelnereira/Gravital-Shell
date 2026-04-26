@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,14 +30,18 @@ import com.termux.terminal.TerminalSession
 import com.termux.terminal.TerminalSessionClient
 import com.termux.view.TerminalView
 import com.termux.view.TerminalViewClient
+import sh.gravital.shell.session.SessionPolicy
 import sh.gravital.shell.session.SessionViewModel
 import sh.gravital.shell.ui.theme.TerminalBackground
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TerminalScreen(
     sessionId: String,
+    sessionPolicy: String,
     viewModel: SessionViewModel,
     onBack: () -> Unit,
+    onOpenFiles: () -> Unit,
 ) {
     var terminalView by remember { mutableStateOf<TerminalView?>(null) }
 
@@ -59,7 +65,7 @@ fun TerminalScreen(
 
             override fun onTerminalCursorStateChange(state: Boolean) {}
 
-            override fun setTerminalShellPid(session: TerminalSession, pid: Int) {}
+            override fun getTerminalCursorStyle(): Int = 0
 
             override fun logError(tag: String?, message: String?) {}
 
@@ -91,6 +97,15 @@ fun TerminalScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onOpenFiles) {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = "File manager",
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -161,6 +176,9 @@ fun TerminalScreen(
     DisposableEffect(sessionId) {
         onDispose {
             terminalView = null
+            if (sessionPolicy == SessionPolicy.Ephemeral.name) {
+                viewModel.destroySession(sessionId)
+            }
         }
     }
 }

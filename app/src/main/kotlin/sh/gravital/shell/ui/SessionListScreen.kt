@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,16 +28,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import sh.gravital.shell.session.SessionPolicy
 import sh.gravital.shell.session.SessionUiState
 import sh.gravital.shell.session.SessionViewModel
 import sh.gravital.shell.ui.components.CreateSessionDialog
 import sh.gravital.shell.ui.components.SessionCard
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SessionListScreen(
     viewModel: SessionViewModel,
-    onOpenSession: (String) -> Unit,
+    onOpenSession: (id: String, policy: String) -> Unit,
 ) {
     var showCreateDialog by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
@@ -90,7 +91,7 @@ fun SessionListScreen(
                             items(state.sessions, key = { it.id }) { session ->
                                 SessionCard(
                                     session = session,
-                                    onOpen = { onOpenSession(session.id) },
+                                    onOpen = { onOpenSession(session.id, session.policy.name) },
                                     onStop = { viewModel.stopSession(session.id) },
                                     onDelete = { viewModel.destroySession(session.id) },
                                 )
@@ -114,9 +115,9 @@ fun SessionListScreen(
 
     if (showCreateDialog) {
         CreateSessionDialog(
-            onConfirm = { name, policy ->
+            onConfirm = { name, policy, template ->
                 showCreateDialog = false
-                viewModel.createSession(name, policy) {}
+                viewModel.createSession(name, policy, template) {}
             },
             onDismiss = { showCreateDialog = false },
         )

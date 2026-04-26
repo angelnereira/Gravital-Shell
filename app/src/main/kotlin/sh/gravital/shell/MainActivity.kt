@@ -27,6 +27,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import sh.gravital.shell.files.FileBridgeScreen
 import sh.gravital.shell.service.ShellService
 import sh.gravital.shell.session.SessionViewModel
 import sh.gravital.shell.setup.FirstRunSetup
@@ -37,7 +38,8 @@ import sh.gravital.shell.ui.theme.GravitalShellTheme
 private const val TAG = "MainActivity"
 
 private const val ROUTE_SESSIONS = "sessions"
-private const val ROUTE_TERMINAL = "terminal/{sessionId}"
+private const val ROUTE_TERMINAL = "terminal/{sessionId}/{policy}"
+private const val ROUTE_FILES = "files/{sessionId}"
 
 class MainActivity : ComponentActivity() {
 
@@ -106,16 +108,27 @@ class MainActivity : ComponentActivity() {
                         composable(ROUTE_SESSIONS) {
                             SessionListScreen(
                                 viewModel = viewModel,
-                                onOpenSession = { id ->
-                                    navController.navigate("terminal/$id")
+                                onOpenSession = { id, policy ->
+                                    navController.navigate("terminal/$id/$policy")
                                 },
                             )
                         }
                         composable(ROUTE_TERMINAL) { backStack ->
                             val sessionId = backStack.arguments?.getString("sessionId") ?: return@composable
+                            val policy = backStack.arguments?.getString("policy") ?: "Persistent"
                             TerminalScreen(
                                 sessionId = sessionId,
+                                sessionPolicy = policy,
                                 viewModel = viewModel,
+                                onBack = { navController.popBackStack() },
+                                onOpenFiles = { navController.navigate("files/$sessionId") },
+                            )
+                        }
+                        composable(ROUTE_FILES) { backStack ->
+                            val sessionId = backStack.arguments?.getString("sessionId") ?: return@composable
+                            FileBridgeScreen(
+                                sessionId = sessionId,
+                                filesDir = filesDir,
                                 onBack = { navController.popBackStack() },
                             )
                         }

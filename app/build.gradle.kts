@@ -74,6 +74,10 @@ tasks.register<Exec>("buildRustLibs") {
     )
 }
 
+tasks.named("preBuild") {
+    dependsOn("buildRustLibs")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
