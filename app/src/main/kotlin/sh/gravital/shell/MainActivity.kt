@@ -11,8 +11,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -46,6 +50,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: SessionViewModel by viewModels()
     private var setupComplete by mutableStateOf(false)
     private var setupError by mutableStateOf<String?>(null)
+    private var setupMessage by mutableStateOf("Preparing...")
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -65,7 +70,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             runCatching {
-                FirstRunSetup.run(this@MainActivity)
+                FirstRunSetup.run(this@MainActivity) { msg -> setupMessage = msg }
             }.onSuccess {
                 setupComplete = true
                 viewModel.loadSessions()
@@ -99,7 +104,15 @@ class MainActivity : ComponentActivity() {
                                 .padding(padding),
                             contentAlignment = Alignment.Center,
                         ) {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = setupMessage,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                         }
                     }
                 } else {

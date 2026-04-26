@@ -11,6 +11,7 @@ pub fn build_proot_argv(
     let resolv_bind = format!("--bind={}/resolv.conf:/etc/resolv.conf", files_dir);
     vec![
         CString::new(proot_bin).unwrap(),
+        CString::new("--link2symlink").unwrap(),
         CString::new("--rootfs").unwrap(),
         CString::new(rootfs_dir).unwrap(),
         CString::new("--bind=/dev").unwrap(),
