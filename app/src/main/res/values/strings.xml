@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gravital Shell</string>
+    <string name="session_list_title">Sessions</string>
+    <string name="new_session">New Session</string>
+    <string name="session_name_hint">Session name</string>
+    <string name="session_policy_label">Session policy</string>
+    <string name="policy_ephemeral">Ephemeral</string>
+    <string name="policy_persistent">Persistent</string>
+    <string name="policy_snapshot">Snapshot</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="open">Open</string>
+    <string name="stop">Stop</string>
+    <string name="no_sessions">No sessions yet</string>
+    <string name="setting_up">Setting up environment...</string>
+    <string name="notification_channel_name">Shell Sessions</string>
+    <string name="notification_title">Gravital Shell</string>
+    <string name="notification_text">Terminal sessions running</string>
+</resources>
