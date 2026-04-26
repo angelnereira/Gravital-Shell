@@ -1,6 +1,7 @@
 package sh.gravital.shell.setup
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,7 +11,6 @@ import java.io.FileOutputStream
 
 private const val TAG = "FirstRunSetup"
 private const val MARKER = ".setup_complete"
-private const val PROOT_ASSET = "proot-arm64"
 private const val ALPINE_ASSET = "alpine-minirootfs.tar.gz"
 
 object FirstRunSetup {
@@ -37,16 +37,22 @@ object FirstRunSetup {
         }
     }
 
+    private fun prootAssetName(): String {
+        val primaryAbi = Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
+        return if (primaryAbi.startsWith("x86_64")) "proot-x86_64" else "proot-arm64"
+    }
+
     private fun extractProot(context: Context, filesDir: File, onProgress: (String) -> Unit) {
-        val dest = File(filesDir, "proot-arm64")
+        val dest = File(filesDir, "proot")
         if (dest.exists()) return
 
         onProgress("Installing proot...")
-        context.assets.open(PROOT_ASSET).use { src ->
+        val assetName = prootAssetName()
+        context.assets.open(assetName).use { src ->
             FileOutputStream(dest).use { out -> src.copyTo(out) }
         }
         dest.setExecutable(true, false)
-        Log.i(TAG, "proot extracted to ${dest.absolutePath}")
+        Log.i(TAG, "proot ($assetName) extracted to ${dest.absolutePath}")
     }
 
     private fun extractAlpine(context: Context, filesDir: File, onProgress: (String) -> Unit) {

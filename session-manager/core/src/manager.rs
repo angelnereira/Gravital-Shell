@@ -133,7 +133,7 @@ impl SessionManager {
 
     pub fn proot_args_for(&self, id: &Uuid, files_dir: &str) -> Result<Vec<String>> {
         let session = self.sessions.get(id).context("session not found")?;
-        let proot_bin = format!("{}/proot-arm64", files_dir);
+        let proot_bin = format!("{}/proot", files_dir);
         let rootfs = session.rootfs_path();
         let rootfs_str = rootfs
             .to_str()
@@ -148,8 +148,9 @@ impl SessionManager {
             return Ok(());
         }
         std::fs::create_dir_all(&dest)?;
+        let src = format!("{}/.", template_dir.to_str().unwrap());
         let status = std::process::Command::new("cp")
-            .args(["-a", "--", template_dir.to_str().unwrap(), dest.to_str().unwrap()])
+            .args(["-a", "--", src.as_str(), dest.to_str().unwrap()])
             .status()
             .context("cp command failed")?;
         if !status.success() {

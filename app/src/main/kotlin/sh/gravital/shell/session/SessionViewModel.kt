@@ -73,7 +73,7 @@ class SessionViewModel : ViewModel() {
                 "/",
                 shellArgs,
                 env,
-                TerminalSession.TERMINAL_ROWS,
+                2000,
                 client,
             )
             _activeSessions[sessionId] = session
@@ -85,7 +85,7 @@ class SessionViewModel : ViewModel() {
 
     fun stopSession(sessionId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _activeSessions.remove(sessionId)?.finishIfRunning()
+            _activeSessions.remove(sessionId)?.let { if (it.isRunning) it.finish() }
             GravitalShellBridge.stopSession(sessionId)
             loadSessions()
         }
@@ -93,7 +93,7 @@ class SessionViewModel : ViewModel() {
 
     fun destroySession(sessionId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _activeSessions.remove(sessionId)?.finishIfRunning()
+            _activeSessions.remove(sessionId)?.let { if (it.isRunning) it.finish() }
             GravitalShellBridge.destroySession(sessionId)
             loadSessions()
         }
