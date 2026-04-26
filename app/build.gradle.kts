@@ -54,6 +54,10 @@ android {
         }
     }
 
+    androidResources {
+        noCompress += listOf("tar.gz", "gz")
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
