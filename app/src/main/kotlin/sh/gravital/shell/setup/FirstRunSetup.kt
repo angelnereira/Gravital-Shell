@@ -59,8 +59,14 @@ object FirstRunSetup {
 
     private fun extractUbuntu(context: Context, filesDir: File, onProgress: (String) -> Unit) {
         val templateDir = File(filesDir, "ubuntu-template")
-        if (templateDir.exists() && templateDir.list()?.isNotEmpty() == true) return
+        // If a previous setup run failed mid-extraction, the directory exists but is incomplete.
+        // The MARKER file is only written on success, so if it's absent and the template dir exists
+        // we delete and re-extract to guarantee a clean state.
+        if (templateDir.exists() && File(filesDir, MARKER).exists()) return
 
+        if (templateDir.exists()) {
+            templateDir.deleteRecursively()
+        }
         templateDir.mkdirs()
 
         // AAPT2 decompresses .gz assets on packaging; check for decompressed name first
