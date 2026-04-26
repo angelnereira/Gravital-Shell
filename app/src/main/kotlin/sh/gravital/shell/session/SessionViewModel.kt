@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import sh.gravital.shell.bridge.GravitalShellBridge
+import java.util.concurrent.ConcurrentHashMap
 
 class SessionViewModel : ViewModel() {
 
@@ -19,7 +20,7 @@ class SessionViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<SessionUiState>(SessionUiState.Loading)
     val uiState: StateFlow<SessionUiState> = _uiState.asStateFlow()
 
-    private val _activeSessions = mutableMapOf<String, TerminalSession>()
+    private val _activeSessions = ConcurrentHashMap<String, TerminalSession>()
 
     var nativeLibDir: String = ""
 
@@ -69,36 +70,31 @@ class SessionViewModel : ViewModel() {
         sessionId: String,
         client: TerminalSessionClient,
     ): TerminalSession? {
-        val existing = _activeSessions[sessionId]
-        if (existing != null) return existing
+        _activeSessions[sessionId]?.let { return it }
 
-        return runCatching {
-            val argsJson = GravitalShellBridge.startSession(sessionId)
-            val args: List<String> = gson.fromJson(argsJson, object : TypeToken<List<String>>() {}.type)
-            if (args.isEmpty()) return null
+        val argsJson = GravitalShellBridge.startSession(sessionId)
+        val args: List<String> = gson.fromJson(argsJson, object : TypeToken<List<String>>() {}.type)
+        if (args.isEmpty()) {
+            android.util.Log.e("SessionViewModel", "startSession returned empty args for $sessionId")
+            return null
+        }
 
-            val shellPath = args[0]
-            val shellArgs = args.drop(1).toTypedArray()
-            val ldPath = if (nativeLibDir.isNotEmpty()) nativeLibDir else "/system/lib64"
-            val env = arrayOf(
-                "TERM=xterm-256color",
-                "HOME=/root",
-                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-                "LANG=en_US.UTF-8",
-                "LD_LIBRARY_PATH=$ldPath",
-            )
+        val shellPath = args[0]
+        val shellArgs = args.drop(1).toTypedArray()
+        val ldPath = if (nativeLibDir.isNotEmpty()) nativeLibDir else "/system/lib64"
+        val env = arrayOf(
+            "TERM=xterm-256color",
+            "HOME=/root",
+            "USER=root",
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "LANG=en_US.UTF-8",
+            "LD_LIBRARY_PATH=$ldPath",
+        )
 
-            val session = TerminalSession(
-                shellPath,
-                "/",
-                shellArgs,
-                env,
-                2000,
-                client,
-            )
-            _activeSessions[sessionId] = session
-            session
-        }.getOrNull()
+        android.util.Log.i("SessionViewModel", "Starting session $sessionId: $shellPath")
+        val session = TerminalSession(shellPath, "/", shellArgs, env, 2000, client)
+        _activeSessions[sessionId] = session
+        return session
     }
 
     fun getActiveSession(sessionId: String): TerminalSession? = _activeSessions[sessionId]
