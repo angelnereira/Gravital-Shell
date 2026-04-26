@@ -144,19 +144,11 @@ impl SessionManager {
     pub fn copy_rootfs_from_template(&self, id: &Uuid, template_dir: &Path) -> Result<()> {
         let session = self.sessions.get(id).context("session not found")?;
         let dest = session.rootfs_path();
-        if dest.exists() {
+        if dest.exists() && dest.read_dir().map(|mut d| d.next().is_some()).unwrap_or(false) {
             return Ok(());
         }
         std::fs::create_dir_all(&dest)?;
-        let src = format!("{}/.", template_dir.to_str().unwrap());
-        let status = std::process::Command::new("cp")
-            .args(["-a", "--", src.as_str(), dest.to_str().unwrap()])
-            .status()
-            .context("cp command failed")?;
-        if !status.success() {
-            anyhow::bail!("cp -a returned non-zero exit code");
-        }
-        Ok(())
+        copy_dir_recursive(template_dir, &dest)
     }
 
     pub fn import_file(&self, id: &Uuid, src_path: &Path, dest_rel: &str) -> Result<()> {
@@ -207,4 +199,39 @@ impl SessionManager {
     fn sessions_dir(&self) -> PathBuf {
         self.base_dir.join("sessions")
     }
+}
+
+// Pure Rust recursive copy — avoids `cp -a` which fails on Android because
+// Android's /data SELinux policy denies hard link creation and chown.
+// Hard-linked files in the Ubuntu rootfs become independent copies here,
+// which is fine since proot + --link2symlink handles subsequent hard links.
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        let file_type = match entry.file_type() {
+            Ok(ft) => ft,
+            Err(e) => {
+                log::warn!("copy_dir: skip {:?}: {}", src_path, e);
+                continue;
+            }
+        };
+
+        if file_type.is_dir() {
+            std::fs::create_dir_all(&dst_path)?;
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else if file_type.is_symlink() {
+            let target = std::fs::read_link(&src_path)?;
+            let _ = std::fs::remove_file(&dst_path);
+            if let Err(e) = std::os::unix::fs::symlink(&target, &dst_path) {
+                log::warn!("copy_dir: symlink {:?} -> {:?}: {}", dst_path, target, e);
+            }
+        } else {
+            if let Err(e) = std::fs::copy(&src_path, &dst_path) {
+                log::warn!("copy_dir: copy {:?}: {}", src_path, e);
+            }
+        }
+    }
+    Ok(())
 }
