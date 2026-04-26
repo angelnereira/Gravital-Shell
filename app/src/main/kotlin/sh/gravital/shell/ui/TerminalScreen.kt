@@ -81,29 +81,25 @@ fun TerminalScreen(
         }
     }
 
-    // Start session on IO thread — rootfs copy can be 70–200 MB and must never run on main thread
+    // Two-phase session start:
+    //   Phase 1 on IO  — rootfs copy + JNI proot args (heavy, cannot block main thread)
+    //   Phase 2 on Main — TerminalSession constructor (requires Android Looper/Handler)
     LaunchedEffect(sessionId) {
-        val existing = viewModel.getActiveSession(sessionId)
-        if (existing != null) {
-            terminalSession = existing
+        viewModel.getActiveSession(sessionId)?.let {
+            terminalSession = it
             return@LaunchedEffect
         }
-        withContext(Dispatchers.IO) {
-            try {
-                loadingMessage = "Preparing Ubuntu environment..."
-                val session = viewModel.buildTerminalSession(sessionId, sessionClient)
-                withContext(Dispatchers.Main) {
-                    if (session != null) {
-                        terminalSession = session
-                    } else {
-                        errorMessage = "Could not start session.\nCheck that setup completed successfully."
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    errorMessage = "Error: ${e.message}"
-                }
+        try {
+            loadingMessage = "Preparing Ubuntu environment..."
+            val args = withContext(Dispatchers.IO) {
+                viewModel.prepareSession(sessionId)
             }
+            loadingMessage = "Starting terminal..."
+            // Back on Main thread here — safe to construct TerminalSession
+            val session = viewModel.createTerminalSession(sessionId, args, sessionClient)
+            terminalSession = session
+        } catch (e: Exception) {
+            errorMessage = "Error: ${e.message}"
         }
     }
 

@@ -7,3 +7,4 @@ contains the most recent build.
 | Build | Version | versionCode | Date (UTC) | Commit | Message | Size |
 |------:|---------|-------------|------------|--------|---------|------|
 | 1 | 0.1.0 | 1 | 2026-04-26 22:48 UTC | a859201 | fix: move session start to IO thread, fix stale rootfs template detection | 85M |
+| 2 | 0.1.0 | 1 | 2026-04-26 23:07 UTC | 4b69aa5 | feat: add APK versioning system with build counter and release index | 85M |
