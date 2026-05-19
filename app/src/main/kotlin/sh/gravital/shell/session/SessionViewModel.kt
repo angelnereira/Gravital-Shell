@@ -69,12 +69,17 @@ class SessionViewModel : ViewModel() {
     // Step 1 — run on Dispatchers.IO: heavy work (rootfs copy, proot args via JNI)
     fun prepareSession(sessionId: String): List<String> {
         val argsJson = GravitalShellBridge.startSession(sessionId)
-        val args: List<String> = gson.fromJson(argsJson, object : TypeToken<List<String>>() {}.type)
-        if (args.isEmpty()) {
-            android.util.Log.e("SessionViewModel", "startSession returned empty args for $sessionId")
-            throw RuntimeException("Failed to build proot args for session $sessionId")
+        val rawArgs: List<String> = gson.fromJson(argsJson, object : TypeToken<List<String>>() {}.type)
+        if (rawArgs.isEmpty()) {
+            throw RuntimeException("startSession returned empty args for $sessionId")
         }
-        android.util.Log.i("SessionViewModel", "proot args ready for $sessionId: ${args[0]}")
+        // Override proot path: filesDir/proot cannot execute on API 29+ (SELinux noexec)
+        // Use nativeLibraryDir/libproot.so which Android installs with execute permission
+        val args = rawArgs.toMutableList()
+        if (nativeLibDir.isNotEmpty()) {
+            args[0] = "$nativeLibDir/libproot.so"
+        }
+        android.util.Log.i("SessionViewModel", "proot: ${args[0]}")
         return args
     }
 

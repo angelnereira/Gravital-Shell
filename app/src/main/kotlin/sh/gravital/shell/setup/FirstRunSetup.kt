@@ -39,22 +39,12 @@ object FirstRunSetup {
         }
     }
 
-    private fun prootAssetName(): String {
-        val primaryAbi = Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
-        return if (primaryAbi.startsWith("x86_64")) "proot-x86_64" else "proot-arm64"
-    }
-
     private fun extractProot(context: Context, filesDir: File, onProgress: (String) -> Unit) {
-        val dest = File(filesDir, "proot")
-        if (dest.exists()) return
-
-        onProgress("Installing proot...")
-        val assetName = prootAssetName()
-        context.assets.open(assetName).use { src ->
-            FileOutputStream(dest).use { out -> src.copyTo(out) }
+        val proofBin = File(nativeLibDir(context), "libproot.so")
+        if (!proofBin.exists()) {
+            throw RuntimeException("proot not found in native lib dir: ${proofBin.absolutePath}")
         }
-        dest.setExecutable(true, false)
-        Log.i(TAG, "proot ($assetName) extracted to ${dest.absolutePath}")
+        Log.i(TAG, "proot verified at ${proofBin.absolutePath}")
     }
 
     private fun extractUbuntu(context: Context, filesDir: File, onProgress: (String) -> Unit) {
