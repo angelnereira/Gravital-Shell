@@ -92,14 +92,8 @@ pub extern "C" fn Java_sh_gravital_shell_bridge_GravitalShellBridge_startSession
     };
 
     let dir = files_dir().to_string();
-    let template = PathBuf::from(&dir).join("ubuntu-template");
 
     let mgr = get_manager().lock().unwrap();
-
-    if let Err(e) = mgr.copy_rootfs_from_template(&id, &template) {
-        log::error!("failed to copy rootfs for {}: {}", id_str, e);
-        return env.new_string("[]").unwrap().into_raw();
-    }
 
     match mgr.proot_args_for(&id, &dir) {
         Ok(args) => {

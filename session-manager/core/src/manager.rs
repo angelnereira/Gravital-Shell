@@ -134,26 +134,35 @@ impl SessionManager {
     pub fn proot_args_for(&self, id: &Uuid, files_dir: &str) -> Result<Vec<String>> {
         let session = self.sessions.get(id).context("session not found")?;
         let proot_bin = format!("{}/proot", files_dir);
-        let rootfs = session.rootfs_path();
-        let rootfs_str = rootfs
-            .to_str()
-            .context("rootfs path is not valid UTF-8")?;
-        Ok(crate::pty::build_proot_argv_strings(&proot_bin, rootfs_str, files_dir))
-    }
 
-    pub fn copy_rootfs_from_template(&self, id: &Uuid, template_dir: &Path) -> Result<()> {
-        let session = self.sessions.get(id).context("session not found")?;
-        let dest = session.rootfs_path();
-        if dest.exists() && dest.read_dir().map(|mut d| d.next().is_some()).unwrap_or(false) {
-            return Ok(());
-        }
-        std::fs::create_dir_all(&dest)?;
-        copy_dir_recursive(template_dir, &dest)
+        // Shared rootfs: all sessions use ubuntu-template, avoiding per-session 200MB copies.
+        let template = PathBuf::from(files_dir).join("ubuntu-template");
+        let rootfs_str = template.to_str().context("template path not valid UTF-8")?;
+
+        // Per-session home bound to /root inside proot — the only per-session writable space.
+        let home_dir = session.home_path();
+        std::fs::create_dir_all(&home_dir)?;
+        let home_str = home_dir.to_str().context("home path not valid UTF-8")?;
+
+        Ok(crate::pty::build_proot_argv_strings(
+            &proot_bin,
+            rootfs_str,
+            home_str,
+            files_dir,
+        ))
     }
 
     pub fn import_file(&self, id: &Uuid, src_path: &Path, dest_rel: &str) -> Result<()> {
         let session = self.sessions.get(id).context("session not found")?;
-        let dest = session.rootfs_path().join(dest_rel.trim_start_matches('/'));
+        let home = session.home_path();
+        std::fs::create_dir_all(&home)?;
+        // "/root/.init.sh" → strip "/root" prefix, write to home dir
+        let rel = if dest_rel.starts_with("/root") {
+            dest_rel[5..].trim_start_matches('/')
+        } else {
+            dest_rel.trim_start_matches('/')
+        };
+        let dest = home.join(rel);
         if let Some(parent) = dest.parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -164,7 +173,13 @@ impl SessionManager {
 
     pub fn export_file(&self, id: &Uuid, src_rel: &str, dest_path: &Path) -> Result<()> {
         let session = self.sessions.get(id).context("session not found")?;
-        let src = session.rootfs_path().join(src_rel.trim_start_matches('/'));
+        let home = session.home_path();
+        let rel = if src_rel.starts_with("/root") {
+            src_rel[5..].trim_start_matches('/')
+        } else {
+            src_rel.trim_start_matches('/')
+        };
+        let src = home.join(rel);
         if let Some(parent) = dest_path.parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -175,7 +190,9 @@ impl SessionManager {
 
     pub fn list_session_files(&self, id: &Uuid, rel_path: &str) -> Result<Vec<String>> {
         let session = self.sessions.get(id).context("session not found")?;
-        let dir = session.rootfs_path().join(rel_path.trim_start_matches('/'));
+        let home = session.home_path();
+        std::fs::create_dir_all(&home)?;
+        let dir = home.join(rel_path.trim_start_matches('/'));
         let mut entries = Vec::new();
         if dir.is_dir() {
             for e in std::fs::read_dir(&dir)? {
@@ -201,37 +218,3 @@ impl SessionManager {
     }
 }
 
-// Pure Rust recursive copy — avoids `cp -a` which fails on Android because
-// Android's /data SELinux policy denies hard link creation and chown.
-// Hard-linked files in the Ubuntu rootfs become independent copies here,
-// which is fine since proot + --link2symlink handles subsequent hard links.
-fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
-    for entry in std::fs::read_dir(src)? {
-        let entry = entry?;
-        let src_path = entry.path();
-        let dst_path = dst.join(entry.file_name());
-        let file_type = match entry.file_type() {
-            Ok(ft) => ft,
-            Err(e) => {
-                log::warn!("copy_dir: skip {:?}: {}", src_path, e);
-                continue;
-            }
-        };
-
-        if file_type.is_dir() {
-            std::fs::create_dir_all(&dst_path)?;
-            copy_dir_recursive(&src_path, &dst_path)?;
-        } else if file_type.is_symlink() {
-            let target = std::fs::read_link(&src_path)?;
-            let _ = std::fs::remove_file(&dst_path);
-            if let Err(e) = std::os::unix::fs::symlink(&target, &dst_path) {
-                log::warn!("copy_dir: symlink {:?} -> {:?}: {}", dst_path, target, e);
-            }
-        } else {
-            if let Err(e) = std::fs::copy(&src_path, &dst_path) {
-                log::warn!("copy_dir: copy {:?}: {}", src_path, e);
-            }
-        }
-    }
-    Ok(())
-}

@@ -6,9 +6,11 @@ use std::os::unix::io::RawFd;
 pub fn build_proot_argv(
     proot_bin: &str,
     rootfs_dir: &str,
+    home_dir: &str,
     files_dir: &str,
 ) -> Vec<CString> {
     let resolv_bind = format!("--bind={}/resolv.conf:/etc/resolv.conf", files_dir);
+    let home_bind = format!("--bind={}:/root", home_dir);
     vec![
         CString::new(proot_bin).unwrap(),
         CString::new("--link2symlink").unwrap(),
@@ -19,6 +21,7 @@ pub fn build_proot_argv(
         CString::new("--bind=/sys").unwrap(),
         CString::new(resolv_bind).unwrap(),
         CString::new("--bind=/dev/urandom:/dev/random").unwrap(),
+        CString::new(home_bind).unwrap(),
         CString::new("--change-id=0:0").unwrap(),
         CString::new("--kill-on-exit").unwrap(),
         CString::new("--pwd=/root").unwrap(),
@@ -37,9 +40,10 @@ pub fn build_proot_argv(
 pub fn build_proot_argv_strings(
     proot_bin: &str,
     rootfs_dir: &str,
+    home_dir: &str,
     files_dir: &str,
 ) -> Vec<String> {
-    build_proot_argv(proot_bin, rootfs_dir, files_dir)
+    build_proot_argv(proot_bin, rootfs_dir, home_dir, files_dir)
         .into_iter()
         .map(|s| s.into_string().unwrap_or_default())
         .collect()
