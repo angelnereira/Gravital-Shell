@@ -98,8 +98,8 @@ fun TerminalScreen(
             // Back on Main thread here — safe to construct TerminalSession
             val session = viewModel.createTerminalSession(sessionId, args, sessionClient)
             terminalSession = session
-        } catch (e: Exception) {
-            errorMessage = "Error: ${e.message}"
+        } catch (e: Throwable) {
+            errorMessage = "Error: ${e.message ?: e.javaClass.simpleName}"
         }
     }
 

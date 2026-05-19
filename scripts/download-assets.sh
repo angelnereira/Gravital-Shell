@@ -68,6 +68,11 @@ download_proot() {
             fail "Failed to download proot x86_64 from $url"
         fi
     fi
+
+    # Install proot to jniLibs so Android extracts it to nativeLibraryDir (executable on API 29+)
+    cp "$arm64_dest" "$JNILIBS_ARM64/libproot.so"
+    cp "$x86_dest" "$JNILIBS_X86_64/libproot.so"
+    log "libproot.so installed to jniLibs (arm64 + x86_64)"
 }
 
 download_libtalloc() {

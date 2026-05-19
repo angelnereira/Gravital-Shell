@@ -8,3 +8,4 @@ contains the most recent build.
 |------:|---------|-------------|------------|--------|---------|------|
 | 1 | 0.1.0 | 1 | 2026-04-26 22:48 UTC | a859201 | fix: move session start to IO thread, fix stale rootfs template detection | 85M |
 | 2 | 0.1.0 | 1 | 2026-04-26 23:07 UTC | 4b69aa5 | feat: add APK versioning system with build counter and release index | 85M |
+| 3 | 0.1.0 | 1 | 2026-05-19 04:10 UTC | 3a97cdc | fix: construct TerminalSession on main thread to satisfy Android Looper requirement | 87M |
